@@ -3,35 +3,35 @@ import sys
 import unittest
 
 from PyQt5.QtWidgets import QApplication
-from id_validator import validator
+#from id_validator import validator
 from collections import deque
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QRect, QPoint
 import time
 import cv2
 import os.path
 
 
 class POCTest(unittest.TestCase):
-    def test_id_validator(self):
-
-        # 15222119870917xx3x
-        count = 0
-        for xx in range(100):
-            for g in [1, 3, 5, 7, 9]:
-                for x in range(10):
-
-                    id_num = "15222119870917%0d%d%d" % (xx, g, x)
-
-                    if validator.is_valid(id_num):
-                        count += 1
-                        print(count, id_num)
-                id_num = "15222119870917%0d%dX" % (xx, g)
-                if validator.is_valid(id_num):
-                    count += 1
-                    print(count, id_num)
-                #    pass
-
-        self.assertTrue(True)
+    # def test_id_validator(self):
+    #
+    #     # 15222119870917xx3x
+    #     count = 0
+    #     for xx in range(100):
+    #         for g in [1, 3, 5, 7, 9]:
+    #             for x in range(10):
+    #
+    #                 id_num = "15222119870917%0d%d%d" % (xx, g, x)
+    #
+    #                 if validator.is_valid(id_num):
+    #                     count += 1
+    #                     print(count, id_num)
+    #             id_num = "15222119870917%0d%dX" % (xx, g)
+    #             if validator.is_valid(id_num):
+    #                 count += 1
+    #                 print(count, id_num)
+    #             #    pass
+    #
+    #     self.assertTrue(True)
 
     def test_dequeue(self):
         q0 = deque(maxlen=4)
@@ -65,6 +65,24 @@ class POCTest(unittest.TestCase):
             cv2.imshow("image", im)
 
         pass
+
+    def test_qrect(self):
+        rect = QRect( atopLeft=QPoint(0,0),abottomRight=QPoint(0,0))
+        print(rect.isNull())
+        print(rect.topLeft())
+        print(rect.bottomRight())
+
+        rect.setTopLeft(QPoint(1,1))
+        rect.setBottomRight(QPoint(3,3))
+
+        print(rect.isNull())
+        print(rect.topLeft())
+        print(rect.bottomRight())
+        print(rect.height())
+        print(rect.width())
+        print(rect.center())
+
+
 
 
 if __name__ == '__main__':

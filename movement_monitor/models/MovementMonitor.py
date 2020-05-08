@@ -31,6 +31,7 @@ class MovementMonitorSignal(QObject):
     monitor_status_changed = pyqtSignal(MonitorStatus)
     movement_status_changed = pyqtSignal(MovementStatus)
     message = pyqtSignal(str)
+    image_rect_changed = pyqtSignal(QRect)
 
 
 class MovementMonitor(QObject):
@@ -48,14 +49,26 @@ class MovementMonitor(QObject):
 
         self.__image_queue = deque(maxlen=10)
 
+        self.__image_rect = QRect()
+
         self.signals = MovementMonitorSignal()
 
         # signals connections
         self.signals.image_queue_changed.connect(self.on_image_queue_changed)
         self.signals.monitor_status_changed.connect(self.on_monitor_status_changed)
         self.signals.video_source_changed.connect(self.on_video_source_changed)
+
         # TODO: test code, to be removed
         self.__timer.timeout.connect(self.on_timer_timeout)
+
+    @property
+    def image_rect(self):
+        return self.__image_rect
+
+    @image_rect.setter
+    def image_rect(self, value: QRect):
+        self.__image_rect = value
+
 
     @property
     def video_source(self):
@@ -107,6 +120,8 @@ class MovementMonitor(QObject):
 
     @pyqtSlot()
     def on_timer_timeout(self):
+
+
         print("timer timeout hint")
 
     @pyqtSlot()
