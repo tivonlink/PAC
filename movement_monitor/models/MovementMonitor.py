@@ -2,7 +2,7 @@ from enum import Enum
 from PyQt5.QtCore import QRect, QObject, QTimer, pyqtSignal, pyqtSlot
 from collections import deque
 import cv2
-import time
+from skimage.measure import compare_ssim
 import os
 import numpy as np
 
@@ -39,8 +39,9 @@ class MovementMonitor(QObject):
         super().__init__()
         # properties
         self.__timer = QTimer()
+        self.__timer_hit = 0
         self.__timer.setSingleShot(False)
-        self.__timer.setInterval(10000)
+        self.__timer.setInterval(1000)
 
         self.__video_source = ""
         self.__video_source_type = VideoSourceType.NotValid
@@ -67,7 +68,10 @@ class MovementMonitor(QObject):
 
     @image_rect.setter
     def image_rect(self, value: QRect):
-        self.__image_rect = value
+        if self.__image_rect!=value:
+            self.__image_rect = value
+            self.signals.image_rect_changed.emit(value)
+
 
 
     @property
@@ -81,18 +85,17 @@ class MovementMonitor(QObject):
             if self.__video_source_type != VideoSourceType.NotValid:
                 self.__video_source = value
                 self.signals.video_source_changed.emit(value)
-                self.__success()
             else:
                 self.__error("Video source not valid or supported. Open video failed.")
 
     @property
     def sampling_interval(self):
-        return int(self.__timer.interval() / 1000)
+        return self.__timer.interval()
 
     @sampling_interval.setter
     def sampling_interval(self, value: int):
         if self.__timer.interval() != value:
-            self.__timer.setInterval(int(value * 1000))
+            self.__timer.setInterval(int(value))
 
     @property
     def sampling_quantity(self):
@@ -112,17 +115,33 @@ class MovementMonitor(QObject):
 
     @pyqtSlot(MonitorStatus)
     def on_monitor_status_changed(self, status: MonitorStatus):
-        print(self.__timer)
         if status == MonitorStatus.Stopped:
             self.__timer.stop()
+            self.__timer_hit = 0
+            self.__image_queue.clear()
         else:
             self.__timer.start()
 
     @pyqtSlot()
     def on_timer_timeout(self):
+        self.__timer_hit +=1
+        print(f"timer timeout hit {self.__timer_hit}")
+        if self.__video_source_type == VideoSourceType.File:
+            vc = cv2.VideoCapture(self.__video_source)
+            if vc.isOpened():
+                vc.set(cv2.CAP_PROP_POS_MSEC, self.__timer_hit*self.sampling_interval)
+                success, img = vc.read()
+                if success:
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    self.signals.image_changed.emit(img)
+                    self.compute_movement_status(img)
+            vc.release()
+        elif self.__video_source_type == VideoSourceType.Stream:
+            #TODO: add video stream logic here
+            pass
+        else:
+            pass
 
-
-        print("timer timeout hint")
 
     @pyqtSlot()
     def on_image_queue_changed(self):
@@ -149,8 +168,28 @@ class MovementMonitor(QObject):
         vc.release()
         return ret
 
-    def __success(self):
-        self.signals.message.emit("")
-
     def __error(self, msg: str):
         self.signals.message.emit(msg)
+
+    def is_ready(self):
+        if self.video_source!="":
+            return True
+        else:
+            return False
+
+
+    def compute_movement_status(self,im:np.ndarray):
+        if(len(self.__image_queue)==self.__image_queue.maxlen):
+            ssim_queue = deque(maxlen=self.__image_queue.maxlen)
+            for context in self.__image_queue:
+                quality = compare_ssim(context,im,gaussian_weights=True)
+                ssim_queue.append(quality)
+            print(ssim_queue)
+            print(sum(map(lambda m: m>0.9,ssim_queue)))
+            if sum(map(lambda m: m>0.9,ssim_queue))>len(ssim_queue)*0.8:
+                self.signals.movement_status_changed.emit(MovementStatus.Stopped)
+            else:
+                self.signals.movement_status_changed.emit(MovementStatus.Moving)
+        else:
+            self.signals.movement_status_changed.emit(MovementStatus.Processing)
+        self.__image_queue.append(im)
