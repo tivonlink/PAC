@@ -181,8 +181,27 @@ class MovementMonitor(QObject):
     def compute_movement_status(self,im:np.ndarray):
         if(len(self.__image_queue)==self.__image_queue.maxlen):
             ssim_queue = deque(maxlen=self.__image_queue.maxlen)
+            imcpy = im.copy()
+            if self.__image_rect.isNull() == False:
+                rect = QRect(self.__image_rect)
+                if rect.top() < 0:
+                    rect.setTop(0)
+                if rect.left() < 0:
+                    rect.setLeft(0)
+                print("adjuested rect ", rect)
+
+            print("original comparing image shape: ", imcpy.shape)
+            if self.__image_rect.isNull() == False:
+                imcpy = imcpy[rect.top():rect.bottom(), rect.left():rect.right() ]
+                print("cropped comparing image shape: ", imcpy.shape)
+
             for context in self.__image_queue:
-                quality = compare_ssim(context,im,gaussian_weights=True)
+                print("original context image shape: ", context.shape)
+                if self.__image_rect.isNull() == False:
+                    context = context[rect.top():rect.bottom(), rect.left():rect.right()]
+                    print("cropped context image shape: ", context.shape)
+
+                quality = compare_ssim(context,imcpy,gaussian_weights=True)
                 ssim_queue.append(quality)
             print(ssim_queue)
             print(sum(map(lambda m: m>0.9,ssim_queue)))

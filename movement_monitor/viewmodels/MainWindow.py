@@ -1,8 +1,11 @@
 from PyQt5.QtCore import pyqtSlot, QRect, QPointF, QRectF, QPoint
 from PyQt5.QtGui import QImage, QPixmap, QPen, QBrush, QColor
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QGraphicsScene, QGraphicsView, QInputDialog, QGraphicsRectItem
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QGraphicsScene, QGraphicsView, QInputDialog, QGraphicsRectItem, \
+    QGraphicsPixmapItem
 
 from movement_monitor.models.MovementMonitor import MovementMonitor, MonitorStatus, MovementStatus
+from movement_monitor.models.MovementStatusNotifier import MovementStatusNotifier
+from movement_monitor.viewmodels.NotificationSettingDialog import NotificationSettingDialog
 from movement_monitor.views.MainWindowUI import MainWindowUI
 import numpy as np
 import os
@@ -12,6 +15,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.__monitor = MovementMonitor()
+        self.__notifier = MovementStatusNotifier(self.__monitor)
 
         self.__ui = MainWindowUI()
 
@@ -41,8 +45,13 @@ class MainWindow(QMainWindow):
     def on_image_changed(self, im: np.ndarray):
         if self.__ui.graphicsView.scene() is None:
             self.__ui.graphicsView.setScene(QGraphicsScene())
-        self.__ui.graphicsView.scene().clear()
-        self.__ui.graphicsView.scene().addPixmap(QPixmap.fromImage(self.ndarray2qimage(im)))
+
+        for i in filter(lambda x:isinstance(x,QGraphicsPixmapItem),
+                        self.__ui.graphicsView.scene().items()):
+            self.__ui.graphicsView.scene().removeItem(i)
+
+        neoPixMap = self.__ui.graphicsView.scene().addPixmap(QPixmap.fromImage(self.ndarray2qimage(im)))
+        neoPixMap.setZValue(0)
         pass
 
     @pyqtSlot(str)
@@ -112,10 +121,13 @@ class MainWindow(QMainWindow):
             br = self.__ui.graphicsView.mapToScene(rect.bottomRight())
             neoRect = QRect(QPoint(tl.x(),tl.y()),QPoint(br.x(),br.y()))
             neoRectF = QRectF(tl,br)
-            for i in self.__ui.graphicsView.scene().items():
-                if isinstance(i,QGraphicsRectItem):
-                    self.__ui.graphicsView.scene().removeItem(i)
-            self.__ui.graphicsView.scene().addRect(neoRectF,QPen(QColor(0,255,255,255)),QBrush(QColor(224,255,255,63)))
+
+            for i in filter(lambda x: isinstance(x, QGraphicsRectItem),
+                            self.__ui.graphicsView.scene().items()):
+                self.__ui.graphicsView.scene().removeItem(i)
+
+            neoRectItem = self.__ui.graphicsView.scene().addRect(neoRectF,QPen(QColor(0,255,255,255)),QBrush(QColor(224,255,255,63)))
+            neoRectItem.setZValue(1)
             self.__monitor.image_rect = neoRect
 
     @pyqtSlot()
@@ -124,9 +136,10 @@ class MainWindow(QMainWindow):
             self.__ui.statusbar.showMessage("Could not change monitor range during execution.")
             return
 
-        for i in self.__ui.graphicsView.scene().items():
-            if isinstance(i, QGraphicsRectItem):
-                self.__ui.graphicsView.scene().removeItem(i)
+        for i in filter(lambda x: isinstance(x,QGraphicsRectItem),
+                        self.__ui.graphicsView.scene().items()):
+            self.__ui.graphicsView.scene().removeItem(i)
+
         self.__monitor.image_rect = QRect()
 
     @pyqtSlot(int)
@@ -152,6 +165,11 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def on_action_quit_triggered(self):
         self.close()
+
+    @pyqtSlot()
+    def on_action_notification_settings_triggered(self):
+        dialog = NotificationSettingDialog(self, self.__notifier)
+        dialog.show()
 
     # functions
     @staticmethod

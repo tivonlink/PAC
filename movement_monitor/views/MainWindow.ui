@@ -89,7 +89,11 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="spb_sampling_interval"/>
+           <widget class="QSpinBox" name="spb_sampling_interval">
+            <property name="maximum">
+             <number>100000</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_6">
@@ -125,7 +129,7 @@
      <x>0</x>
      <y>0</y>
      <width>1426</width>
-     <height>30</height>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -143,8 +147,9 @@
     <property name="title">
      <string>Monitor Setting</string>
     </property>
-    <addaction name="action_set_monitor_range"/>
     <addaction name="action_clear_monitor_range"/>
+    <addaction name="separator"/>
+    <addaction name="action_notification_settings"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMonitor_Setting"/>
@@ -196,6 +201,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="action_notification_settings">
+   <property name="text">
+    <string>Notification settings</string>
    </property>
   </action>
  </widget>

@@ -2,13 +2,11 @@
 
 # Form implementation generated from reading ui file 'MainWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class MainWindowUI(object):
     def setupUi(self, MainWindow):
@@ -71,7 +69,7 @@ class MainWindowUI(object):
         self.horizontalLayout.addWidget(self.graphicsView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1426, 30))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1426, 17))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -89,8 +87,12 @@ class MainWindowUI(object):
         self.action_start_monitor.setObjectName("action_start_monitor")
         self.action_quit = QtWidgets.QAction(MainWindow)
         self.action_quit.setObjectName("action_quit")
+        self.action_set_monitor_range = QtWidgets.QAction(MainWindow)
+        self.action_set_monitor_range.setObjectName("action_set_monitor_range")
         self.action_clear_monitor_range = QtWidgets.QAction(MainWindow)
         self.action_clear_monitor_range.setObjectName("action_clear_monitor_range")
+        self.action_notification_settings = QtWidgets.QAction(MainWindow)
+        self.action_notification_settings.setObjectName("action_notification_settings")
         self.menuFile.addAction(self.action_open_video_file)
         self.menuFile.addAction(self.action_open_video_stream)
         self.menuFile.addSeparator()
@@ -98,6 +100,8 @@ class MainWindowUI(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.action_quit)
         self.menuMonitor_Setting.addAction(self.action_clear_monitor_range)
+        self.menuMonitor_Setting.addSeparator()
+        self.menuMonitor_Setting.addAction(self.action_notification_settings)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuMonitor_Setting.menuAction())
 
@@ -114,7 +118,7 @@ class MainWindowUI(object):
         self.groupBox.setTitle(_translate("MainWindow", "Monitor Setting"))
         self.label_3.setText(_translate("MainWindow", "Monitor Range:"))
         self.lab_monitor_range.setText(_translate("MainWindow", "(0,0) (0,0)"))
-        self.label_7.setText(_translate("MainWindow", "Sampling Interval(ms):"))
+        self.label_7.setText(_translate("MainWindow", "Sampling Interval(s):"))
         self.label_6.setText(_translate("MainWindow", "Sampling Quantity"))
         self.btn_run.setText(_translate("MainWindow", "Start"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
@@ -127,5 +131,9 @@ class MainWindowUI(object):
         self.action_start_monitor.setShortcut(_translate("MainWindow", "Ctrl+R"))
         self.action_quit.setText(_translate("MainWindow", "Quit"))
         self.action_quit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
+        self.action_set_monitor_range.setText(_translate("MainWindow", "Set monitor range"))
+        self.action_set_monitor_range.setShortcut(_translate("MainWindow", "Ctrl+E"))
         self.action_clear_monitor_range.setText(_translate("MainWindow", "Clear monitor range"))
         self.action_clear_monitor_range.setShortcut(_translate("MainWindow", "Ctrl+D"))
+        self.action_notification_settings.setText(_translate("MainWindow", "Notification settings"))
+

@@ -9,6 +9,12 @@ from PyQt5.QtCore import QTimer, QRect, QPoint
 import time
 import cv2
 import os.path
+import ffmpeg
+import numpy
+
+from twilio.rest import Client as twClient
+from twilio.http.http_client import TwilioHttpClient as twHttpClient
+
 
 
 class POCTest(unittest.TestCase):
@@ -82,8 +88,60 @@ class POCTest(unittest.TestCase):
         print(rect.width())
         print(rect.center())
 
+    @staticmethod
+    def read_frame_by_time(in_file: str, time: int):
+        """
+        read frame at specified time
+        """
+        out, err = (
+            ffmpeg.input(in_file, ss=time)
+                .output('pipe:', vframes=1, format='image2', vcodec='mjpeg')
+                .run(capture_stdout=True)
+        )
+        return out
+
+    @staticmethod
+    def get_video_info(in_file:str):
+        """
+        read video basic information
+        """
+        try:
+            probe = ffmpeg.probe(in_file)
+            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+            if video_stream is None:
+                print('No video stream found', file=sys.stderr)
+                sys.exit(1)
+            return video_stream
+        except ffmpeg.Error as err:
+            print(str(err.stderr, encoding='utf8'))
+            sys.exit(1)
+
+    def test_ffmpeg(self):
+        file_path = "../resource/oscillation test 20cycle.avi"
+        video_info = self.get_video_info(file_path)
+        print(video_info)
+        out = self.read_frame_by_time(file_path,10)
+        image_array = numpy.asarray(bytearray(out),dtype="uint8")
+        image = cv2.imencode(image_array,cv2.IMREAD_GRAYSCALE)
+        cv2.imshow("frame",image)
+        cv2.waitKey()
 
 
+    def test_twilio(self):
+        sid = "AC81f933fac5b6c884b03864e0c088334d"
+        token ="38e7724f25392b6dcf60ceaaa2332997"
+        number = "+12058800988"
+        receiver = "+8618516703450"
+        http_client = twHttpClient(proxy={"http":"http://lks00043:Bqqq,001@10.180.41.77:3128",
+                                          "https":"http://lks00043:Bqqq,001@10.180.41.77:3128"})
+        client = twClient(sid,token,http_client=http_client)
+
+        message = client.messages.create(
+            to=receiver,
+            from_=number,
+            body="Hellow from Python!")
+
+        print(message.status)
 
 if __name__ == '__main__':
     unittest.main()
