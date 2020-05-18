@@ -25,10 +25,6 @@ class NotificationSettingDialog(QDialog):
 
         self.__notifier.signals.subscribers_changed.emit(self.__notifier.subscribers)
 
-        #TODO:Test Code to be removed
-        self.__notifier.add_subscriber("123456789")
-        self.__notifier.add_subscriber("223456789")
-        self.__notifier.add_subscriber("323456789")
 
     #notifier signal slots
     @pyqtSlot(list)
